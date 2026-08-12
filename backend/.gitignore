@@ -1,0 +1,9 @@
+# Dependencies — rebuildable from package.json, never committed.
+node_modules
+
+# Environment variables — contains real database credentials.
+# Keep .env out of version control; .env.example documents it instead.
+.env
+
+# Compiled TypeScript output.
+dist

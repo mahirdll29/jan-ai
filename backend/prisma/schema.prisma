@@ -1,0 +1,138 @@
+// JAN-AI — database schema
+//
+// This file is the single source of truth for the database.
+// Prisma reads it to do two things:
+//   1. generate SQL migrations that shape the PostgreSQL database
+//   2. generate a typed TypeScript client we use to query that database
+
+// The generator block: what Prisma produces FROM this schema.
+// "prisma-client-js" generates the typed client into node_modules/@prisma/client,
+// which is why we can write: import { PrismaClient } from "@prisma/client"
+generator client {
+  provider = "prisma-client-js"
+}
+
+// The datasource block: WHERE the database is.
+// env() reads DATABASE_URL from .env so the real credentials never
+// live in source control.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// ENUMS
+// Each of these becomes a real PostgreSQL type (CREATE TYPE ... AS ENUM).
+// The database itself rejects any value outside the list — this is a database
+// constraint, not just application validation.
+// ---------------------------------------------------------------------------
+
+// The kind of civic issue. Chosen by the citizen when creating a report.
+enum Category {
+  POTHOLE
+  GARBAGE
+  DRAINAGE
+  STREETLIGHT
+  OTHER
+}
+
+// How serious the issue is. Assigned by AI AFTER the report is created,
+// which is why the field using it is optional.
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// Where the report is in its lifecycle.
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+// ---------------------------------------------------------------------------
+// MODELS
+// Each model becomes a table. Each field becomes a column.
+// ---------------------------------------------------------------------------
+
+model User {
+  id String @id @default(cuid())
+
+  // @unique creates a database-level unique constraint. This is what actually
+  // prevents duplicate accounts — an application-level "does this email exist?"
+  // check can be beaten by two requests arriving at the same time.
+  // It also creates an index, which makes login lookups fast.
+  email String @unique
+
+  // Stores the bcrypt HASH, never the plain password.
+  password String
+
+  name String
+
+  createdAt DateTime @default(now())
+
+  // The "many" side of the relation. This column does not exist in the database —
+  // it is a virtual field Prisma gives us so we can write:
+  //   prisma.user.findUnique({ where: { id }, include: { reports: true } })
+  reports Report[]
+}
+
+model Report {
+  id String @id @default(cuid())
+
+  // Written by the citizen.
+  title       String
+  description String
+
+  // Optional (the "?"): a report is valid without a photo.
+  // We store the Cloudinary URL as a string — never the image bytes themselves.
+  imageUrl String?
+
+  // Required: the citizen picks this when creating the report, so it always exists.
+  category Category
+
+  // Optional: assigned by the AI pipeline AFTER creation.
+  // AI is an enhancement layer, never a dependency — if Groq is slow or down,
+  // the report must still save. A nullable column is how the schema expresses
+  // "this may never be filled in, and that is fine."
+  severity Severity?
+
+  // Every new report starts OPEN. The default lives in the database, so the
+  // application never has to remember to set it.
+  status Status @default(OPEN)
+
+  // Plain floats — no PostGIS (a deliberate v1 non-goal).
+  // Good enough to store and display a point. What we give up is efficient
+  // "find reports within 5km" queries; nearby search will be a bounding-box
+  // filter in application code instead.
+  latitude  Float
+  longitude Float
+
+  // AI-generated output, kept in separate nullable columns so machine-written
+  // text is never confused with what the citizen actually wrote.
+  aiSummary String?
+  // Comma-separated tags, e.g. "road,safety,urgent".
+  // Postgres supports String[] which would allow filtering by a single tag,
+  // but a plain String keeps the schema simple for v1.
+  aiTags String?
+
+  // The foreign key. THIS is the real column in the database.
+  userId String
+
+  // The relation field. Virtual — it tells Prisma how userId connects to User,
+  // and lets us write include: { user: true }.
+  // onDelete: Cascade means deleting a user also deletes their reports.
+  // The alternative (Restrict) would block the delete instead. A report with no
+  // author has no meaning in this app, so Cascade is the right choice here.
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  // Prisma rewrites this timestamp automatically on every update.
+  updatedAt DateTime @updatedAt
+
+  // PostgreSQL does NOT automatically index foreign keys.
+  // "Show me my reports" filters on userId on every dashboard load,
+  // so this index earns its cost.
+  @@index([userId])
+}

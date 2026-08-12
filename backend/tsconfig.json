@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    // Compile to a modern JavaScript version that Node 18+ fully supports.
+    "target": "ES2022",
+
+    // Node's classic module system (require / module.exports).
+    // Matches "type": "commonjs" in package.json.
+    "module": "commonjs",
+
+    // Where compiled JavaScript goes when we run `npm run build`.
+    "outDir": "./dist",
+    // Where our TypeScript source lives.
+    "rootDir": "./src",
+
+    // Turns on all of TypeScript's safety checks — most importantly it forces
+    // us to handle values that might be null or undefined.
+    "strict": true,
+
+    // Lets us write `import express from "express"` for CommonJS packages
+    // instead of the clunkier `import * as express from "express"`.
+    "esModuleInterop": true,
+
+    // Skips type-checking inside node_modules. Big speed win, no downside.
+    "skipLibCheck": true,
+
+    // Prevents bugs from inconsistent file name casing between Windows
+    // (case-insensitive) and Linux servers (case-sensitive).
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
