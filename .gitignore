@@ -1,0 +1,4 @@
+# Personal study and planning notes — kept on disk, not part of the project.
+# backend/.gitignore and frontend/.gitignore handle node_modules, .env and builds.
+
+docs/
