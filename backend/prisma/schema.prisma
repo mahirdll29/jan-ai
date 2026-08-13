@@ -51,6 +51,22 @@ enum Status {
   RESOLVED
 }
 
+// Where the AI ENHANCEMENT is in its lifecycle. Added in Module 4.
+//
+// This closes a real weakness in the Module 1 schema. Before this existed, the
+// only signal was `severity: null` — and that single value had to mean BOTH
+// "the AI hasn't run yet" and "the AI ran and failed". Those need opposite
+// responses (wait vs retry), and no amount of reading the column could tell
+// them apart.
+//
+// The lesson: the ABSENCE of data is not a status. If a process can be in more
+// than one state, give it a column that says which one.
+enum AiStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 // ---------------------------------------------------------------------------
 // MODELS
 // Each model becomes a table. Each field becomes a column.
@@ -116,6 +132,19 @@ model Report {
   // Postgres supports String[] which would allow filtering by a single tag,
   // but a plain String keeps the schema simple for v1.
   aiTags String?
+
+  // Tracks whether the AI pipeline has run for this report, and how it went.
+  //
+  // @default(PENDING) is doing two jobs:
+  //   1. The application never has to set it on create — same as `status` above.
+  //   2. It is what lets this migration succeed on a table that ALREADY HAS
+  //      ROWS. A required column with no default cannot be added to a non-empty
+  //      table, because Postgres has no value to put in the existing rows.
+  //
+  // Known consequence: reports created before Module 4 get PENDING and will sit
+  // there forever, because enhancement is triggered by creation and they were
+  // already created. POST /api/reports/:id/enhance can fix them on demand.
+  aiStatus AiStatus @default(PENDING)
 
   // The foreign key. THIS is the real column in the database.
   userId String

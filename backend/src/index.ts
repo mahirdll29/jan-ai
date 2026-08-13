@@ -16,6 +16,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth";
+import reportRoutes from "./routes/reports";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -92,6 +93,12 @@ app.get("/health", (req, res) => {
 // is served beneath "/api/auth" — so "/login" there becomes "/api/auth/login"
 // here. The prefix lives in this one line, not scattered through the route file.
 app.use("/api/auth", authRoutes);
+
+// Same idea for reports. Note this sits BEFORE the 404 catch-all below —
+// registered after it, every /api/reports request would match the catch-all
+// first and come back "Not found", because Express takes the first match in
+// registration order and never looks further.
+app.use("/api/reports", reportRoutes);
 
 // Any request reaching this point matched none of the routes above.
 //
