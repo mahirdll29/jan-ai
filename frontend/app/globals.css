@@ -27,8 +27,20 @@
 
    =========================================================================== */
 
-/* Phase 7 owns dark mode. Kept so the variant exists, but nothing applies
-   `.dark` today — see the note above the .dark block at the bottom. */
+/* ---- THIS VARIANT STAYS, EVEN THOUGH THERE IS NO DARK THEME ----------------
+
+   JAN-AI has one theme. Dark mode was considered in Phase 7 and DECLINED — see
+   the note where the stock `.dark` values used to be, at the end of the shadcn
+   token block below.
+
+   The variant is still declared because it is not optional: components/ui/
+   holds unedited shadcn components (badge.tsx, button.tsx, input.tsx) and every
+   one of them ships `dark:` utilities in its class strings. Tailwind has to
+   know what `dark:` means to compile them. Delete this line and the build
+   fails on components nobody has touched.
+
+   The rule that keeps ui/ unedited is what makes this line necessary. Worth
+   knowing before "cleaning up" an unused variant. */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -334,42 +346,43 @@
 }
 
 /* ===========================================================================
-   DARK MODE — PHASE 7 OWNS THIS, AND IT IS NOT DONE.
+   DARK MODE — CONSIDERED IN PHASE 7, AND DECLINED.
 
-   These are still shadcn's stock neutrals. Nothing in the app applies the
-   `.dark` class today, so none of it renders. It is left in place so the
-   variant keeps compiling, and because the brief is explicit that dark mode,
-   if built, must be a GENUINE SECOND THEME rather than an inversion of this
-   one — which is design work, not a find-and-replace.
+   A `.dark { ... }` block used to sit here holding shadcn's stock greys. It has
+   been DELETED, and the deletion is the decision.
+
+   ---- WHY IT WAS DELETED RATHER THAN LEFT IN PLACE ------------------------
+
+   Nothing in this app ever applied the `.dark` class, so none of those values
+   rendered. That made them worse than useless: dead code shaped like a working
+   feature. The first person to add class="dark" to <html> would have got
+   shadcn's default neutral greys — a completely different, never-measured
+   design — and would reasonably have believed dark mode was half-built.
+
+   Deleting it means the honest thing is now also the obvious thing: there is
+   one theme.
+
+   ---- WHY THE FEATURE WAS DECLINED ----------------------------------------
+
+   A second theme here is not an inversion, it is a re-derivation. Almost every
+   colour above was chosen against warm paper and then MEASURED against it:
+
+     * near-black ON safety orange for the primary button, because white on
+       orange is 3.6:1 and fails, while ink on orange is 5.23:1 and passes
+     * the five category colours separated by lightness as well as hue, tuned
+       at the size a 4px tick actually renders
+     * --rule at 1.34:1 for decorative dividers, split from --rule-strong at
+       3.13:1 for form-field borders
+
+   Flipping the tokens mechanically breaks the first of those outright and
+   invalidates the measurements behind the other two. Doing it properly means
+   picking new values for roughly thirty tokens and re-checking every contrast
+   pair — design work, not a find-and-replace — plus a toggle and a pre-paint
+   script to avoid a flash of the wrong theme on load.
+
+   That is a phase of its own. It is recorded as an open item rather than
+   shipped at half strength.
    =========================================================================== */
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
-}
 
 @layer base {
     * {

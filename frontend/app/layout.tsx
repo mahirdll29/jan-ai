@@ -69,16 +69,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // suppressHydrationWarning is on <html> ahead of Phase 7's theme toggle: a
-    // theme has to be applied before first paint to avoid a flash, which means
-    // a script mutates this element before React hydrates. Without this, React
-    // would warn that the server and client markup disagree — which they do,
-    // deliberately.
-    <html
-      lang="en"
-      className={`${archivo.variable} ${publicSans.variable}`}
-      suppressHydrationWarning
-    >
+    // ---- suppressHydrationWarning WAS HERE, AND WAS REMOVED IN PHASE 7 ----
+    //
+    // It was added in Phase 2 in anticipation of a theme toggle: a theme has to
+    // be applied before first paint to avoid a flash, which means an inline
+    // script mutates <html> before React hydrates, which React would otherwise
+    // warn about.
+    //
+    // Phase 7 declined dark mode (see the note in globals.css), so no script
+    // mutates this element and there is no deliberate mismatch to suppress.
+    // What the attribute would still do is silence GENUINE hydration warnings
+    // on the root element — which is a debugging hazard kept in place for a
+    // feature that does not exist.
+    //
+    // Removing it is the smaller risk. If a theme toggle is ever built, it
+    // comes back with the script that justifies it.
+    <html lang="en" className={`${archivo.variable} ${publicSans.variable}`}>
       <body className="min-h-dvh bg-paper text-ink">
         {/* The two client-side boundaries in the root layout, and they are
             deliberately thin.

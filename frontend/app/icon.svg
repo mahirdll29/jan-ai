@@ -1,0 +1,55 @@
+<!--
+  THE APP ICON. Next serves this automatically: a file named app/icon.svg is a
+  file based metadata convention, and Next emits the <link rel="icon"> tag for
+  it. That tag is what stops browsers probing /favicon.ico, which is the actual
+  fix for the console 404 we used to log on every page load.
+
+  CAUTION, AND THIS FILE ALREADY GOT IT WRONG ONCE: an XML comment may not
+  contain a double hyphen. This project's house comment style uses long runs of
+  hyphens as section rules, which is fine in TypeScript and CSS and makes an SVG
+  MALFORMED. The first version of this file had 68 of them; it served with a 200
+  and the correct content type, and the browser could not parse it, so the tab
+  icon silently did not render. Keep the comments here plain. The full reasoning
+  lives in docs/architecture.md.
+
+  Colours are hardcoded sRGB, because a standalone SVG cannot see the page's CSS
+  custom properties. They duplicate globals.css and can drift from it. Note that
+  the token names cannot be written here either, for the same double hyphen
+  reason as above, so they are spelled without their prefix:
+
+      #171310  is  the ink token     oklch(0.19  0.008 60)
+      #f8f7f4  is  the paper token   oklch(0.975 0.004 85)
+      #f15200  is  the signal token  oklch(0.65  0.21  42)
+
+  The signal token sits outside the sRGB gamut, so it has no single correct hex.
+  Chroma reduction (what CSS Color 4 specifies) predicts #ec5900; measured by
+  painting it into a canvas and reading the pixel back, Chrome rasterises
+  #f15200. The measured value is used, because the job is to match what the app
+  actually paints rather than what the specification says it ought to.
+
+  No <text> element: this file is fetched as its own document and has no access
+  to the Archivo that next/font self hosts, so the mark is geometry.
+
+  A map pin on a solid ink tile. The tile keeps it legible against both a light
+  and a dark browser tab. The pale dot is what reads as a pin rather than a
+  droplet at 16px, which is the size that matters.
+-->
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 32 32"
+  width="32"
+  height="32"
+  role="img"
+  aria-label="JAN-AI"
+>
+  <title>JAN-AI</title>
+
+  <rect width="32" height="32" rx="6" fill="#171310" />
+
+  <path
+    d="M16 4c-4.7 0-8.5 3.8-8.5 8.5C7.5 19 16 28 16 28s8.5-9 8.5-15.5C24.5 7.8 20.7 4 16 4z"
+    fill="#f15200"
+  />
+
+  <circle cx="16" cy="12.5" r="3.25" fill="#f8f7f4" />
+</svg>

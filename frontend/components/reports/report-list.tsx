@@ -39,7 +39,36 @@ export function ReportList({ reports }: { reports: Report[] }) {
       key={reports.map((r) => r.id).join(",")}
       className="border-t border-rule"
     >
-      <AnimatePresence initial={false}>
+      {/* ---- NO `initial={false}` HERE, AND THAT IS THE FIX ------------------
+          It used to say `<AnimatePresence initial={false}>`, and the entrance
+          animation above NEVER PLAYED as a result. Found by the Phase 7 motion
+          audit, and it is worth understanding because the two lines look
+          unrelated:
+
+            * `initial={false}` tells AnimatePresence to skip enter animations
+              for the children present at ITS OWN first render. On a list that
+              mounts once and then gains and loses rows, that is exactly right —
+              it stops everything animating in on page load.
+
+            * but the `key` on the parent above remounts this whole subtree
+              every time the result set changes — AnimatePresence included. So
+              AnimatePresence was on its first render EVERY time, and every row
+              was always a "child present at first render".
+
+          The two cancelled out: the key existed to replay the entrance, and
+          `initial={false}` suppressed exactly the thing the key was replaying.
+          Nothing errored; the list simply appeared instantly, which looks like
+          a design choice rather than a bug.
+
+          MEASURED both ways, against the styleguide's MotionDemo as a control
+          (same variants, same tokens, no AnimatePresence): the demo produced 5
+          Element.animate calls and translateY(8px) -> none on each row, while
+          this component produced ZERO of either, on first load and on filter
+          change alike.
+
+          Exit animations are unaffected — `exit` below is what AnimatePresence
+          is actually here for. */}
+      <AnimatePresence>
         {reports.map((report) => (
           <motion.div
             key={report.id}
