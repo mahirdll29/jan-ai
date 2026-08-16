@@ -1,8 +1,12 @@
 # JAN-AI
 
+> **v1 is live → [jan-ai-v1.vercel.app](https://jan-ai-v1.vercel.app)**
+>
+> This is just the first version — many more features are coming. See the [roadmap](#roadmap) below.
+
 A civic issue reporting platform. People report things like potholes, garbage dumps, broken streetlights or drainage problems, mark the location, and the report goes into a dashboard where it can be tracked. AI runs on top of each report to pull out a summary, guess the severity and tag it.
 
-Built backend first, then the frontend on top of it. Both are working.
+Built backend first, then the frontend on top of it. Both are deployed and running.
 
 ## Why
 
@@ -19,7 +23,7 @@ The AI part is deliberately optional. If the AI provider is down, reports still 
 - [x] Dashboard stats
 - [x] Frontend — auth, reports, image upload, map, dashboard
 - [x] Landing page, error pages and polish
-- [ ] Deploy
+- [x] Deploy (frontend on Vercel, backend on Render)
 
 ## Stack
 
@@ -182,3 +186,18 @@ Deleting a report doesn't delete its image from Cloudinary, so those accumulate.
 
 Map pins at the same coordinates sit exactly on top of each other. Clustering is the fix, but at
 this data volume it'd be solving a problem I don't have yet.
+
+## Roadmap
+
+v1 is shipped. Here's what's coming next:
+
+- [ ] Admin role and moderation dashboard
+- [ ] Email notifications on status changes
+- [ ] Upvoting / priority from community engagement
+- [ ] Rate limiting and abuse prevention
+- [ ] Password reset flow
+- [ ] Map pin clustering
+- [ ] Job queue for AI enhancement (BullMQ / pg-boss)
+- [ ] Image cleanup on report deletion
+- [ ] Mobile-responsive improvements
+- [ ] PWA support
