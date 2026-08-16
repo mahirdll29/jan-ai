@@ -18,7 +18,7 @@ The AI part is deliberately optional. If the AI provider is down, reports still 
 - [x] AI enhancement pipeline
 - [x] Dashboard stats
 - [x] Frontend — auth, reports, image upload, map, dashboard
-- [ ] Landing page and polish
+- [x] Landing page, error pages and polish
 - [ ] Deploy
 
 ## Stack
