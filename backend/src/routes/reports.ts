@@ -27,7 +27,15 @@ const router = express.Router();
 // `satisfies` checks the shape against Prisma's type WITHOUT widening the
 // `true` values to `boolean`, which is what lets Prisma infer the exact return
 // type. A plain `const` would widen them and lose that.
-const REPORT_SELECT = {
+// EXPORTED as of Module 5. routes/stats.ts imports this to build its "recent
+// reports" list, so a report on the dashboard is byte-identical to a report
+// anywhere else in the API — same 15 fields, same nested { id, name } author.
+//
+// The alternative was a slimmed-down "recent report" shape with just a title and
+// a date. That would be a SECOND definition of what a report looks like, and two
+// definitions of the same thing drift apart the moment one of them is edited.
+// One shape means the frontend has one TypeScript type and one card component.
+export const REPORT_SELECT = {
   id: true,
   title: true,
   description: true,

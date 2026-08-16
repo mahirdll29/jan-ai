@@ -17,6 +17,7 @@ import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/auth";
 import reportRoutes from "./routes/reports";
+import statsRoutes from "./routes/stats";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -99,6 +100,20 @@ app.use("/api/auth", authRoutes);
 // first and come back "Not found", because Express takes the first match in
 // registration order and never looks further.
 app.use("/api/reports", reportRoutes);
+
+// Dashboard aggregates (Module 5). Its own prefix, because /api/stats is its own
+// resource — an aggregate VIEW of reports, not a report.
+//
+// That choice also sidesteps a routing trap. Had this been GET /api/reports/stats
+// instead, it would have had to be registered ABOVE "/:id" inside reports.ts:
+// "stats" is a single path segment and "/:id" matches ANY single path segment,
+// so Express would have looked up a report whose id is the literal string
+// "stats", found nothing, and returned a perfectly plausible 404. Exactly the
+// trap "/mine" has to be registered around. A separate prefix cannot collide
+// with it at all.
+//
+// Like the two above, this sits BEFORE the 404 catch-all.
+app.use("/api/stats", statsRoutes);
 
 // Any request reaching this point matched none of the routes above.
 //
