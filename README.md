@@ -2,7 +2,7 @@
 
 A civic issue reporting platform. People report things like potholes, garbage dumps, broken streetlights or drainage problems, mark the location, and the report goes into a dashboard where it can be tracked. AI runs on top of each report to pull out a summary, guess the severity and tag it.
 
-Still building this. Backend first, frontend after.
+Built backend first, then the frontend on top of it. Both are working.
 
 ## Why
 
@@ -14,10 +14,12 @@ The AI part is deliberately optional. If the AI provider is down, reports still 
 
 - [x] Database schema and migrations
 - [x] Auth — register, login, logout, current user
-- [ ] Report CRUD + search/filter
-- [ ] AI enhancement pipeline
-- [ ] Dashboard stats
-- [ ] Frontend
+- [x] Report CRUD + search/filter
+- [x] AI enhancement pipeline
+- [x] Dashboard stats
+- [x] Frontend — auth, reports, image upload, map, dashboard
+- [ ] Landing page and polish
+- [ ] Deploy
 
 ## Stack
 
@@ -40,10 +42,18 @@ Authentication
 ├── bcrypt
 └── HTTP-only cookies
 
+Map
+├── Leaflet
+└── OpenStreetMap tiles
+
 External Services
 ├── Cloudinary    → image storage
 └── Groq API      → AI enhancement
 ```
+
+Went with Leaflet instead of Mapbox for the map. Mapbox needs an account and a token in every
+environment; Leaflet with OSM tiles needs neither, and for a read-only map showing pins that's
+the whole difference.
 
 ## Data model
 
@@ -79,7 +89,18 @@ npm run dev
 
 Server runs on port 5000 by default.
 
-Env vars you need:
+Then the frontend, in a second terminal:
+
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Runs on port 3000.
+
+Backend env vars:
 
 ```
 DATABASE_URL=
@@ -87,7 +108,24 @@ JWT_SECRET=
 PORT=5000
 FRONTEND_URL=http://localhost:3000
 NODE_ENV=development
+GROQ_API_KEY=
+GROQ_MODEL=openai/gpt-oss-20b
 ```
+
+Frontend env vars:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=
+```
+
+The Cloudinary preset has to be an **unsigned** one. Unsigned uploads only need the cloud name and
+the preset name, both of which end up in the client bundle anyway — no API key or secret goes near
+the frontend. The map needs no key at all.
+
+Everything still works without the Cloudinary vars, you just don't get photo upload. Same with the
+Groq key on the backend — reports save fine, they just don't get a summary.
 
 Generate a JWT secret with:
 
@@ -103,13 +141,44 @@ GET    /health
 POST   /api/auth/register
 POST   /api/auth/login
 POST   /api/auth/logout
-GET    /api/auth/me        (needs auth)
+GET    /api/auth/me                  (auth)
+
+POST   /api/reports                  (auth)
+GET    /api/reports                  public — category, status, search,
+                                     bounding box, page, limit
+GET    /api/reports/mine             (auth) — page and limit only
+GET    /api/reports/:id              public
+PATCH  /api/reports/:id              (auth + owner)
+DELETE /api/reports/:id              (auth + owner) — 204, no body
+POST   /api/reports/:id/enhance      (auth + owner) — re-run the AI
+
+GET    /api/stats                    public — the dashboard, one request
 ```
 
-Report routes coming next.
+Reads are public, writes need the cookie and you can only change your own reports. Civic issues
+are public information, so there's no reason to hide the list behind a login.
+
+One thing worth flagging about `/enhance`: it returns 200 even when the AI call failed. A failed
+enhancement is a normal state of a report, not an error in the API, so the outcome is in
+`aiStatus` in the body rather than the status code.
 
 ## Things I'd change
 
 `onDelete: Cascade` on the user relation is probably wrong here. If someone deletes their account, their reports disappear too, and civic complaints arguably shouldn't vanish because one person left. A soft delete that keeps the report and anonymises the author would be better.
 
-There's also no way to tell "AI hasn't run yet" from "AI ran and failed" right now, since both leave the fields null. An `aiStatus` field would fix that.
+No job queue behind the AI. The enhancement is fired without awaiting it, so it lives as an
+in-memory promise — restart the server mid-call and that one enrichment is gone for good, with
+nothing recording that work was owed. The `/enhance` endpoint is the manual fix. A real answer is
+BullMQ or pg-boss, which also gets you retries and backoff.
+
+No rate limiting. `GET /api/reports` and `GET /api/stats` are both unauthenticated database
+queries anyone can call in a loop.
+
+The Cloudinary upload preset is unsigned, which means it's readable in the client bundle and
+anyone could upload to my account. The preset's own settings (folder, allowed formats, max size)
+are what actually bound it. Signed uploads would need a backend endpoint handing out signatures.
+
+Deleting a report doesn't delete its image from Cloudinary, so those accumulate.
+
+Map pins at the same coordinates sit exactly on top of each other. Clustering is the fix, but at
+this data volume it'd be solving a problem I don't have yet.

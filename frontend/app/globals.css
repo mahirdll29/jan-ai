@@ -1,0 +1,588 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ===========================================================================
+   JAN-AI DESIGN SYSTEM
+   ===========================================================================
+
+   THIS FILE IS THE ENTIRE DESIGN SYSTEM. There is no tailwind.config.js.
+
+   Tailwind v4 moved configuration out of JavaScript and into CSS: the @theme
+   directive below IS the config. Anything declared there becomes both a CSS
+   custom property AND a set of utility classes — `--color-signal` generates
+   `bg-signal`, `text-signal`, `border-signal`, and so on.
+
+   HOW THE SHADCN OVERRIDE WORKS, because this is the mechanism that stops the
+   app looking like every other shadcn site:
+
+     @theme inline  maps a SEMANTIC name to a raw variable
+                    --color-background: var(--background)
+     :root          gives that raw variable its VALUE
+                    --background: oklch(1 0 0)     <- shadcn's stock pure white
+
+   We never touch the mapping. We replace the VALUES in :root with our palette,
+   and every shadcn component inherits them without being edited. Stock shadcn
+   ships pure #FFF on pure #000; ours is warm paper on warm near-black.
+
+   =========================================================================== */
+
+/* Phase 7 owns dark mode. Kept so the variant exists, but nothing applies
+   `.dark` today — see the note above the .dark block at the bottom. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    /* ---- TYPEFACES ------------------------------------------------------
+       Two families, no more. Both variable, both self-hosted at build time by
+       next/font — so there is no runtime request to Google, no third-party
+       dependency, and no flash of unstyled text.
+
+       The raw --font-* variables are created by next/font in app/layout.tsx. */
+
+    /* Public Sans — the typeface of the US Web Design System, drawn for
+       government services. For a civic reporting tool the provenance IS the
+       argument: it is the register of a public institution, not a startup. */
+    --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+
+    /* Archivo, used wide (see --font-stretch usage in the type scale below).
+       Wide-set grotesk reads as a cast street plaque or a standards document.
+       Deliberately NOT a high-contrast serif: serif-on-cream is the single most
+       recognisable AI-generated look in circulation, and a municipal tool
+       should look institutional rather than literary. */
+    --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+    /* ---- TYPE SCALE -----------------------------------------------------
+       Deliberately WIDE. Headings genuinely large, body genuinely calm — the
+       flat "everything is 16px or 24px" look is what makes an interface read
+       as generated. The `--text-x--line-height` suffix is Tailwind v4's way of
+       pairing a size with its leading, so `text-h1` sets both at once. */
+    --text-display: 3.625rem;        /* 58px */
+    --text-display--line-height: 0.95;
+    --text-h1: 2.375rem;             /* 38px */
+    --text-h1--line-height: 1.05;
+    --text-h2: 1.5625rem;            /* 25px */
+    --text-h2--line-height: 1.15;
+    --text-h3: 1.1875rem;            /* 19px */
+    --text-h3--line-height: 1.3;
+    --text-docket: 0.75rem;          /* 12px */
+    --text-docket--line-height: 1.4;
+
+    /* ---- THE PALETTE, as utilities --------------------------------------
+       These generate bg-paper, text-ink, border-rule, bg-signal, etc.
+       Values live in :root below. */
+    --color-paper: var(--paper);
+    --color-paper-sunk: var(--paper-sunk);
+    --color-ink: var(--ink);
+    --color-ink-muted: var(--ink-muted);
+    --color-rule: var(--rule);
+    --color-rule-strong: var(--rule-strong);
+    --color-signal: var(--signal);
+    --color-signal-ink: var(--signal-ink);
+    --color-signal-wash: var(--signal-wash);
+
+    /* The five category colours. See the derivation note in :root. */
+    --color-cat-pothole: var(--cat-pothole);
+    --color-cat-garbage: var(--cat-garbage);
+    --color-cat-drainage: var(--cat-drainage);
+    --color-cat-streetlight: var(--cat-streetlight);
+    --color-cat-other: var(--cat-other);
+
+    /* Severity tints. Desaturated on purpose — severity is ALSO encoded as a
+       label and a 3-segment shape, so colour is never load-bearing. */
+    --color-sev-low: var(--sev-low);
+    --color-sev-medium: var(--sev-medium);
+    --color-sev-high: var(--sev-high);
+
+    /* ---- MOTION ---------------------------------------------------------
+       Overriding Tailwind's OWN --ease-out token rather than adding a new one.
+       That means every `ease-out` utility anywhere in the app emits this curve
+       automatically — enforcement by default, instead of a convention someone
+       has to remember. Durations for JS-driven animation live in lib/motion.ts,
+       because motion/react takes numbers, not CSS classes. */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* ---- RADII ----------------------------------------------------------
+       The brief caps radii at 4–8px. shadcn derives its whole scale from
+       --radius by MULTIPLICATION (--radius-4xl is --radius * 2.6), which at its
+       stock 0.625rem would produce a 26px radius. Every step is overridden to a
+       flat value so nothing can escape the range — the pill shape is reserved
+       for tags and badges, which opt in explicitly with rounded-full. */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 8px;
+    --radius-2xl: 8px;
+    --radius-3xl: 8px;
+    --radius-4xl: 8px;
+
+    /* ---- shadcn's semantic names (mapping untouched) --------------------- */
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+}
+
+:root {
+    /* =======================================================================
+       THE PALETTE
+       =======================================================================
+
+       Written in OKLCH rather than hex. OKLCH is perceptually uniform: two
+       colours with the same L look equally bright to a human eye, which hex
+       and HSL do not guarantee. That is what lets the five category colours be
+       tuned to a consistent weight instead of eyeballed.
+
+       Read it as oklch(Lightness Chroma Hue):
+         L 0 = black, 1 = white
+         C 0 = grey, higher = more saturated
+         H 0-360 degrees
+       ===================================================================== */
+
+    /* ---- SURFACES -------------------------------------------------------
+       Warm off-white, never pure #FFF. Pure white on a screen is a light
+       source, not a page; a warm paper tone reads as a printed municipal
+       notice. Deliberately paler and greyer than the #F4F1EA cream that the
+       default AI-generated look reaches for. */
+    --paper: oklch(0.975 0.004 85);
+    --paper-sunk: oklch(0.955 0.005 85);
+
+    /* ---- INK ------------------------------------------------------------
+       Near-black with a warm cast, never pure #000. Pure black against warm
+       paper vibrates and looks harsh; a warm near-black sits on the page. */
+    --ink: oklch(0.19 0.008 60);
+    --ink-muted: oklch(0.48 0.008 60);
+
+    /* 1px hairlines carry ALL separation in this design. Elevation is the
+       exception, not the system — no shadow used as a halo, no frosted glass,
+       no blurred coloured orbs. */
+    --rule: oklch(0.88 0.006 80);
+
+    /* ---- WHY THERE ARE TWO BORDER TOKENS --------------------------------
+       Measured: --rule is 1.34:1 against paper. That is deliberate and fine for
+       a DIVIDER — WCAG's non-text contrast rule (1.4.11) covers visuals needed
+       to identify a control, and a decorative separator between sections is
+       explicitly not one. The light touch is the design.
+
+       It is NOT fine for a FORM FIELD. The border is the only thing that says
+       "this is an input you can type into", so it has to clear 3:1. shadcn's
+       Input and outline Button both use border-input, so --input points here
+       instead of at --rule.
+
+       Lighthouse scored this page 100 and did not catch it: automated tools
+       check text contrast thoroughly and non-text contrast barely at all. This
+       one came from reading which token the component actually used. */
+    --rule-strong: oklch(0.64 0.008 80);
+
+    /* ---- THE ONE SATURATED COLOUR ---------------------------------------
+       Safety orange: hi-vis vests, traffic cones, road-works signage. The
+       literal uniform of municipal street work.
+
+       THE RULE THAT KEEPS THE WHOLE SYSTEM COHERENT:
+           saturation = "act on this"   (this colour only, ~2% of pixels)
+           hue        = "what kind"     (the five muted category colours)
+       Because the accent is the only saturated thing on the page, it can never
+       be confused with a category, and a category can never look clickable.
+
+       USED FOR: the primary button, the active filter, the focus ring, and the
+       AI-completed moment. NOT for severity, categories, status or surfaces.
+
+       ---- CONTRAST, MEASURED NOT ASSUMED ----------------------------------
+       --signal on --paper is roughly 3.4:1. That PASSES for large text, icons,
+       borders and UI components (which need 3:1) and FAILS for body text
+       (which needs 4.5:1). So:
+         * small text in the accent colour uses --signal-ink (~7:1), never
+           --signal
+         * the primary button puts --ink ON --signal, not white
+       White on safety orange is only ~3.6:1 and would fail. Near-black on
+       orange passes — which is also exactly how real road signage is set.
+       The accessibility constraint and the subject-derived design agree here,
+       which is a good sign that both are right. */
+    --signal: oklch(0.65 0.21 42);
+    --signal-ink: oklch(0.42 0.14 42);
+    --signal-wash: oklch(0.96 0.03 60);
+
+    /* ---- CATEGORY COLOURS -----------------------------------------------
+       Derived from the APWA Uniform Color Code — the actual spray-paint
+       standard crews use to mark buried utilities on a road before digging.
+       It is the colour language of the streets these reports are ABOUT, which
+       is a better source than five pleasant earthy hues chosen by eye.
+
+           DRAINAGE    <- APWA green,  sewers and drain lines
+           STREETLIGHT <- APWA red,    electric power
+           OTHER       <- APWA white,  proposed excavation
+
+       THE HONEST SEAM: potholes and garbage are surface problems, not buried
+       utilities, so the code has no colour for them. Those two are drawn from
+       adjacent civic signage (road-marking ochre, waste umber). Three of five
+       are real; two are extrapolated. Said out loud rather than papered over —
+       a derivation with one honest gap beats a system that pretends.
+
+       ---- SEPARATED ON TWO AXES, AFTER LOOKING AT THEM ---------------------
+       The first version of this palette gave all five roughly equal lightness
+       and let hue do the separating. Rendered, it failed: ochre, clay and rust
+       are all warm, and at the size a 4px tick or an 8px dot actually appears,
+       pothole and garbage were indistinguishable.
+
+       The brief's own named register (ochre, clay, moss, slate, rust) is three
+       warms and two cools, so hue alone was never going to carry five. The fix
+       is to separate the three warm ones by LIGHTNESS as well:
+
+           pothole      L 0.62   lightest warm, clearly yellow
+           streetlight  L 0.52   mid, clearly red
+           garbage      L 0.40   darkest, and desaturated to a true umber
+
+       Any two of them now differ in both hue and value, which is also what
+       makes them survive greyscale. Equal lightness is the right instinct for a
+       palette read as a set; it is the wrong one when the swatches are 4px wide
+       and appear far apart on a page. */
+    --cat-pothole: oklch(0.62 0.12 82);        /* ochre  */
+    --cat-garbage: oklch(0.40 0.05 60);        /* umber  */
+    --cat-drainage: oklch(0.50 0.08 150);      /* moss   */
+    --cat-streetlight: oklch(0.52 0.14 28);    /* rust   */
+    --cat-other: oklch(0.52 0.035 250);        /* slate  */
+
+    /* ---- SEVERITY TINTS -------------------------------------------------
+       Pale backgrounds only. Severity is ALWAYS also rendered with a written
+       label and a 3-segment gauge, so this survives greyscale printing and
+       every form of colour blindness. Colour alone is never the carrier. */
+    --sev-low: oklch(0.94 0.012 240);
+    --sev-medium: oklch(0.94 0.030 75);
+    --sev-high: oklch(0.93 0.035 25);
+
+    /* =======================================================================
+       SHADCN SEMANTIC TOKENS, REPOINTED AT THE PALETTE ABOVE
+       This is the override. Every shadcn component now renders in our system
+       without a single one of them being edited.
+       ===================================================================== */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--paper);
+    --card-foreground: var(--ink);
+    --popover: var(--paper);
+    --popover-foreground: var(--ink);
+
+    /* Primary = safety orange with NEAR-BLACK text. See the contrast note
+       above: black-on-orange is both the accessible pairing and the authentic
+       road-sign pairing. White-on-orange would fail AA. */
+    --primary: var(--signal);
+    --primary-foreground: var(--ink);
+
+    --secondary: var(--paper-sunk);
+    --secondary-foreground: var(--ink);
+    --muted: var(--paper-sunk);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--signal-wash);
+    --accent-foreground: var(--signal-ink);
+
+    /* Destructive is a DEEPER, less orange red than --signal, so "delete" can
+       never be mistaken for "file a report". Two reds that mean different
+       things must not look alike. */
+    --destructive: oklch(0.45 0.17 22);
+
+    /* Dividers and container edges — decorative, so the faint rule is correct. */
+    --border: var(--rule);
+    /* Form field borders — identify a control, so they must clear 3:1. */
+    --input: var(--rule-strong);
+    --ring: var(--signal);
+
+    /* Charts inherit the category palette, so a category is the same colour on
+       the dashboard as it is in the list. One meaning, one colour, everywhere.
+       Phase 6 builds the charts on top of these. */
+    --chart-1: var(--cat-pothole);
+    --chart-2: var(--cat-garbage);
+    --chart-3: var(--cat-drainage);
+    --chart-4: var(--cat-streetlight);
+    --chart-5: var(--cat-other);
+
+    --radius: 0.375rem;   /* 6px — the base the scale above is clamped around */
+
+    --sidebar: var(--paper);
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--signal);
+    --sidebar-primary-foreground: var(--ink);
+    --sidebar-accent: var(--signal-wash);
+    --sidebar-accent-foreground: var(--signal-ink);
+    --sidebar-border: var(--rule);
+    --sidebar-ring: var(--signal);
+}
+
+/* ===========================================================================
+   DARK MODE — PHASE 7 OWNS THIS, AND IT IS NOT DONE.
+
+   These are still shadcn's stock neutrals. Nothing in the app applies the
+   `.dark` class today, so none of it renders. It is left in place so the
+   variant keeps compiling, and because the brief is explicit that dark mode,
+   if built, must be a GENUINE SECOND THEME rather than an inversion of this
+   one — which is design work, not a find-and-replace.
+   =========================================================================== */
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    html {
+        @apply font-sans;
+        /* Stops iOS Safari inflating text in landscape, which silently breaks
+           a carefully set type scale on exactly the device this app is most
+           likely to be used on. */
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        @apply bg-background text-foreground antialiased;
+    }
+
+    /* ---- FOCUS ----------------------------------------------------------
+       Non-negotiable per the brief, and deliberately declared ONCE here rather
+       than per-component so it cannot be forgotten.
+
+       :focus-visible, not :focus — the browser decides when a focus ring is
+       warranted. A mouse click on a button does not draw one; a Tab key press
+       does. That is what keyboard users need and what mouse users find noisy,
+       and the browser already knows the difference. */
+    :focus-visible {
+        outline: 2px solid var(--signal);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    ::selection {
+        background: var(--signal-wash);
+        color: var(--signal-ink);
+    }
+}
+
+/* ===========================================================================
+   LEAFLET
+   ===========================================================================
+
+   Leaflet ships its own stylesheet (imported inside components/map/map-view.tsx
+   so it loads with the map's chunk, not on every page). These rules sit on top
+   of it to bring the map into the same visual register as the rest of the app.
+
+   Written as plain selectors rather than Tailwind classes because Leaflet
+   creates most of this markup itself, at runtime — there is no JSX to put a
+   className on.
+   =========================================================================== */
+
+@layer components {
+    /* ---- THE TILES ------------------------------------------------------
+       Default OpenStreetMap tiles are bright and multi-hued: motorways in
+       orange, retail zones in pink, woodland in a saturated green. Dropped into
+       this design they read as a screenshot of a different website.
+
+       Desaturating and warming them slightly is the cheapest way to pull them
+       into register — three lines, no custom tile server, no API key, and
+       nothing to keep in sync. The alternative is a styled vector basemap,
+       which means an account and a token: precisely what choosing Leaflet over
+       Mapbox avoided.
+
+       Kept mild on purpose. Push the grayscale much past this and the map stops
+       being useful — roads and water need to stay tellable apart. */
+    .leaflet-tile {
+        filter: saturate(0.55) sepia(0.12) brightness(1.02);
+    }
+
+    /* Leaflet paints its own background behind the tiles; without this a
+       pale grey shows through at the edges and while tiles load. */
+    .leaflet-container {
+        background: var(--paper-sunk);
+        font-family: var(--font-sans);
+    }
+
+    /* ---- CONTROLS ---- */
+    .leaflet-control-zoom a {
+        background: var(--paper);
+        color: var(--ink);
+        border-color: var(--rule);
+    }
+
+    .leaflet-control-zoom a:hover {
+        background: var(--signal-wash);
+        color: var(--signal-ink);
+    }
+
+    /* The attribution is a LICENCE CONDITION of the ODbL tiles, not a
+       credit we could drop. Styled to sit quietly rather than hidden. */
+    .leaflet-control-attribution {
+        background: color-mix(in srgb, var(--paper) 88%, transparent);
+        color: var(--ink-muted);
+        font-size: 0.6875rem;
+    }
+
+    .leaflet-control-attribution a {
+        color: var(--ink-muted);
+        text-decoration: underline;
+    }
+
+    /* ---- POPUPS ----
+       Squared off to the design's radius scale instead of Leaflet's default
+       12px, and a hairline border instead of the stock drop shadow. */
+    .leaflet-popup-content-wrapper {
+        background: var(--paper);
+        color: var(--ink);
+        border: 1px solid var(--rule);
+        border-radius: var(--radius-md);
+        box-shadow: none;
+    }
+
+    .leaflet-popup-tip {
+        background: var(--paper);
+        border: 1px solid var(--rule);
+        box-shadow: none;
+    }
+
+    .leaflet-popup-content {
+        margin: 0.75rem 0.875rem;
+        min-width: 12rem;
+    }
+
+    /* Leaflet's close button is a grey serif ×; this matches the ink palette. */
+    .leaflet-container a.leaflet-popup-close-button {
+        color: var(--ink-muted);
+        padding: 0.375rem 0.375rem 0 0;
+    }
+
+    .leaflet-container a.leaflet-popup-close-button:hover {
+        color: var(--signal-ink);
+        background: transparent;
+    }
+
+    /* Keyboard focus on a pin must be visible. Leaflet markers are focusable
+       anchors, and without this the global :focus-visible ring is clipped by
+       the marker's own transform context. */
+    .leaflet-marker-icon:focus-visible {
+        outline: 2px solid var(--signal);
+        outline-offset: 2px;
+    }
+}
+
+/* ===========================================================================
+   UTILITIES
+   `@utility` is Tailwind v4's directive for defining a custom utility class.
+   =========================================================================== */
+
+/* Tabular figures: every digit occupies the same width, so numbers in a column
+   line up and a changing counter does not shimmy. Applied to coordinates,
+   dates, dashboard figures and pagination — anywhere numbers are compared or
+   updated. Proportional figures are for prose; these are data. */
+@utility tnum {
+    font-variant-numeric: tabular-nums;
+}
+
+/* THE DOCKET LINE — the signature element.
+
+   Every report carries a typeset reference line, the way a real municipal
+   complaint carries a case number:
+
+       JAN·DRN·0043 · 23.0225 N 72.5714 E · FILED 13 AUG 2026 · AI PENDING
+
+   It appears identically in the list row, at the head of the detail page and
+   in the map popup, so a report has one stable printed identity everywhere it
+   is seen.
+
+   It earns its place as STRUCTURE rather than decoration because every segment
+   carries real data: category code, sequence, coordinates, filing date, AI
+   state. Set in Public Sans with wide tracking rather than a monospace on
+   purpose — monospace reads "developer tool", letterspaced caps read
+   "municipal notice". */
+@utility docket {
+    font-size: var(--text-docket);
+    line-height: var(--text-docket--line-height);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    /* The docket packs long unbreakable tokens — "JAN·DRN·GJAK8" has no space
+       or hyphen in it, and U+00B7 is not a line-break opportunity. Without this
+       it can push past a narrow screen. */
+    overflow-wrap: break-word;
+}
+
+/* Archivo used wide. The width comes from the font's real `wdth` variation
+   axis, requested in layout.tsx — NOT from a separate "Archivo Expanded"
+   family, which does not exist on Google Fonts. */
+/* ---- USER-GENERATED TEXT MUST BE ABLE TO BREAK -----------------------------
+   Report titles and descriptions are typed by the public. A long unbroken
+   token — a URL, a reference number, a run-on word — has no space or hyphen for
+   the browser to wrap at, so by default it just runs off the side of the
+   screen and takes the page's horizontal scrollbar with it.
+
+   MEASURED, not guessed: a title containing a 13-digit number rendered 327px
+   wide inside a 272px column at 320px viewport, and the whole page scrolled
+   sideways as a result.
+
+   `break-word` rather than `anywhere`/`break-all`: it only breaks a word when
+   that word cannot fit on a line by itself, so ordinary prose still wraps
+   normally at spaces. */
+@utility user-text {
+    overflow-wrap: break-word;
+}
+
+@utility display-wide {
+    font-family: var(--font-display);
+    /* 115% of Archivo's 62–125% range. Pushed up from 110% after seeing it
+       rendered: at 110% the widening was too subtle to read as a deliberate
+       choice, which is the worst place to be — the cost of a non-default width
+       with none of the character. */
+    font-stretch: 115%;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
