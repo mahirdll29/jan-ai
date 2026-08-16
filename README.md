@@ -186,7 +186,7 @@ v1 is shipped. Here's what's coming next:
 - [ ] Rate limiting and abuse prevention
 - [ ] Password reset flow
 - [ ] Map pin clustering
-- [ ] Job queue for AI enhancement (BullMQ / pg-boss)
+- [ ] Job queue for AI enhancement
 - [ ] Image cleanup on report deletion
 - [ ] Mobile-responsive improvements
 - [ ] PWA support
