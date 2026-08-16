@@ -128,30 +128,16 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## Deployment
 
-Frontend on Vercel, backend on Render, database on Neon. All three on free tiers.
+Frontend on Vercel, backend on Render, database on Neon.
 
-The one thing worth knowing: **Render's free tier spins a service down after 15 minutes with no
-traffic**, and waking it up again takes around 50 seconds. That cost lands on the frontend rather
-than the API, because the pages fetch the backend while rendering on the server — so a cold backend
-means a slow first page, not a broken one.
-
-Two things keep it awake, both hitting `GET /health` every five minutes:
-
-- `.github/workflows/keep-alive.yml` — in this repo, so it's visible and version-controlled
-- an external cron job (cron-job.org) hitting the same URL
-
-Both exist because neither is quite enough alone. GitHub delays scheduled workflows under load, and
-disables them entirely after 60 days without a commit; the external service is the one that's
-actually punctual. `/health` is the target because it does no database work, so the pings never
-touch Neon.
-
-Keeping a free instance up around the clock uses roughly 730 of Render's ~750 free instance-hours a
-month, which is fine for one service and would not be for two.
-
-The cookie is also worth a note in production: Vercel and Render are different sites, so the auth
-cookie needs `sameSite: "none"` with `secure: true`, which the backend switches on automatically
+The cookie is the part worth knowing about in production. Vercel and Render are different sites, so
+the auth cookie needs `sameSite: "none"` with `secure: true` — and a browser refuses `none` unless
+`secure` is set too, which is why the two flip together. The backend switches both on automatically
 when `NODE_ENV=production`. Locally it stays `lax`, because `localhost:3000` and `localhost:5000`
-are the same site.
+are the same site even though they're different origins.
+
+`FRONTEND_URL` has to be the exact deployed origin: `cors({ credentials: true })` forbids a
+wildcard origin once credentials are enabled, and browsers reject that combination outright.
 
 ## API
 
