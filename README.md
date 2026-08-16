@@ -14,17 +14,6 @@ Most civic complaint systems are either a phone number nobody picks up or a form
 
 The AI part is deliberately optional. If the AI provider is down, reports still save fine. It only adds severity, a summary and tags after the fact.
 
-## Where it's at
-
-- [x] Database schema and migrations
-- [x] Auth — register, login, logout, current user
-- [x] Report CRUD + search/filter
-- [x] AI enhancement pipeline
-- [x] Dashboard stats
-- [x] Frontend — auth, reports, image upload, map, dashboard
-- [x] Landing page, error pages and polish
-- [x] Deploy (frontend on Vercel, backend on Render)
-
 ## Stack
 
 ```
