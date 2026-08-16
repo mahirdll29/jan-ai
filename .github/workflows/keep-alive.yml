@@ -1,0 +1,88 @@
+# Keeps the Render backend from going to sleep.
+#
+# WHY THIS EXISTS
+# Render's free tier spins a service down after 15 minutes with no inbound
+# traffic, and the next request then pays a cold start of roughly 50 seconds.
+# That cost lands on the FRONTEND rather than the API: /, /reports and
+# /dashboard are server components that fetch the backend at request time, so a
+# cold backend means a visitor waits the better part of a minute for a page.
+# A request every 5 minutes keeps the instance from ever idling out.
+#
+# WHY /health AND NOT SOMETHING ELSE
+# It does no database query and no auth (backend/src/index.ts) and answers in
+# well under a second. Pinging /api/stats instead would fire seven Prisma
+# queries at Neon every five minutes to achieve exactly the same thing.
+#
+# WHY THIS IS NOT THE ONLY MECHANISM
+# Two documented GitHub behaviours make a scheduled workflow unreliable for
+# this specific job, and both fail quietly:
+#
+#   1. Scheduled workflows are best-effort. GitHub delays them when Actions is
+#      under load, and slips of 5-20 minutes are routine — so a */5 schedule can
+#      really fire every ~20 minutes, which is past Render's 15-minute window.
+#   2. GitHub automatically DISABLES scheduled workflows in a public repository
+#      after 60 days with no repository activity. It emails the owner; from the
+#      site's point of view the keep-alive just stops.
+#
+# So an external cron service (cron-job.org) pings the same URL on the same
+# schedule, and is the half that is actually punctual. This workflow is the
+# in-repo backup, and it is version-controlled and visible, which the external
+# service is not. Neither is expected to carry the job alone.
+#
+# COST: nil. Actions minutes are free and unlimited on public repositories.
+# This would NOT be viable on a private repo — a 5-minute cron bills roughly
+# 8,600 minutes a month against a 2,000-minute free quota.
+
+name: Keep backend awake
+
+on:
+  schedule:
+    # Every 5 minutes. See the note above: treat this as "at most every 5
+    # minutes", never as a guarantee.
+    - cron: "*/5 * * * *"
+
+  # Lets the workflow be run by hand from the Actions tab. Without this the
+  # only way to test a change is to wait for the next tick.
+  workflow_dispatch:
+
+# Read-only. The workflow makes one outbound HTTP request and needs nothing
+# from the repository, so it is given nothing.
+permissions:
+  contents: read
+
+# If a run is slow (a cold start can take ~50s), don't let the next tick stack
+# up behind it. Newer run wins; the older one is redundant by definition.
+concurrency:
+  group: keep-alive
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping /health
+        run: |
+          # The URL is deliberately hardcoded rather than kept in a secret. It
+          # is already public — it ships in the frontend bundle as
+          # NEXT_PUBLIC_API_URL and is printed in the README — and storing it as
+          # a secret would imply a confidentiality it does not have.
+          URL="https://jan-ai-h499.onrender.com/health"
+
+          # --fail            non-2xx exits non-zero, so a 502 shows up RED in
+          #                   the Actions tab instead of passing silently
+          # --max-time 90     if the service HAS slept, this request is the cold
+          #                   start and needs to survive it. The default would
+          #                   abort at exactly the moment the ping is doing its
+          #                   job
+          # --retry 2 ...     one blip shouldn't mark the run failed
+          # -w                prints status and timing, so the run log doubles
+          #                   as a crude record of whether cold starts are
+          #                   still happening
+          curl "$URL" \
+            --fail --silent --show-error \
+            --max-time 90 \
+            --retry 2 --retry-delay 10 --retry-all-errors \
+            -o /dev/null \
+            -w 'status=%{http_code}  total=%{time_total}s\n'
